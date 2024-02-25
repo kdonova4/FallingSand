@@ -1,0 +1,19 @@
+﻿  raudio.c
+  rcore.c
+  rglfw.c
+C:\Users\Kevin\Documents\MyGame\raylib-master\src\external\jar_xm.h(242,1): warning C4005: 'DEBUG': macro redefinition
+  (compiling source file '../raylib-master/src/raudio.c')
+  C:\Users\Kevin\Documents\MyGame\raylib-master\src\external\jar_xm.h(242,1):
+  'DEBUG' previously declared on the command line
+  
+C:\Users\Kevin\Documents\MyGame\raylib-master\src\external\rprand.h(205,27): warning C4018: '<': signed/unsigned mismatch
+  (compiling source file '../raylib-master/src/rcore.c')
+  
+  rmodels.c
+C:\Users\Kevin\Documents\MyGame\raylib-master\src\rmodels.c(5371,30): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  rshapes.c
+  rtext.c
+  rtextures.c
+  utils.c
+  Generating Code...
+  raylib.vcxproj -> C:\Users\Kevin\Documents\MyGame\bin\Debug\raylib.lib
