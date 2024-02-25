@@ -155,7 +155,7 @@ void spawn_sand(int mouseX, int mouseY)
 {
 	// Define the range for random sand particle spawning
 	int minSpawn = 5;
-	int maxSpawn = 50;
+	int maxSpawn = 20;
 
 	// Generate a random number of sand particles to spawn
 	int numToSpawn = GetRandomValue(minSpawn, maxSpawn);
