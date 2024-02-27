@@ -76,7 +76,7 @@ void Initialize_Grid(Cell GRID[GRID_WIDTH][GRID_HEIGHT])
 	}
 }
 
-void renderGrid(Cell GRID[GRID_WIDTH][GRID_HEIGHT], Cell BUFFER[GRID_WIDTH][GRID_HEIGHT]) {
+void renderGrid() {
 
 
 	// Iterate over each cell in the grid
