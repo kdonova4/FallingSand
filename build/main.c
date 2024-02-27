@@ -133,7 +133,7 @@ void updateGrid() {
 		for (int x = 0; x < GRID_WIDTH; x++) 
 		{
 			
-				bool down = isEmpty(x,      y + 1);
+				bool down = isEmpty(x,       y + 1);
 				bool dleft = isEmpty(x - 1,  y + 1);
 				bool dright = isEmpty(x + 1, y + 1);
 				if (GRID[x][y].cell == SAND && y < GRID_HEIGHT - 1)
