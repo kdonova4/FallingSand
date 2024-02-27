@@ -134,24 +134,24 @@ void updateGrid() {
 		{
 			
 				bool down = isEmpty(x,      y + 1);
-				bool left = isEmpty(x - 1,  y + 1);
-				bool right = isEmpty(x + 1, y + 1);
+				bool dleft = isEmpty(x - 1,  y + 1);
+				bool dright = isEmpty(x + 1, y + 1);
 				if (GRID[x][y].cell == SAND && y < GRID_HEIGHT - 1)
 				{
 
-					if (left && right)
+					if (dleft && dright)
 					{
 						int random = rand() % 100 + 1;
 
 						if (random > 50)
 						{
-							left = false;
-							right = true;
+							dleft = false;
+							dright = true;
 						}
 						else
 						{
-							left = true;
-							right = false;
+							dleft = true;
+							dright = false;
 						}
 					}
 
@@ -160,16 +160,16 @@ void updateGrid() {
 					{
 							setPixel(&GRID[x][y + 1], SAND, true);
 					}
-					else if (left)
+					else if (dleft)
 					{
 							setPixel(&GRID[x - 1][y], SAND, true);
 					}
-					else if (right)
+					else if (dright)
 					{
 							setPixel(&GRID[x + 1][y], SAND, true);
 					}
 					
-					if (down || left || right)
+					if (down || dleft || dright)
 					{
 						setPixel(&GRID[x][y], EMPTY, false);
 					}
