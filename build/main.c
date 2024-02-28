@@ -23,6 +23,7 @@ typedef struct {
 	float density;
 	bool alive;
 	bool changed;
+
 } Cell;
 
 Cell GRID[GRID_WIDTH][GRID_HEIGHT] = { 0 };
@@ -33,15 +34,17 @@ void renderGrid();
 void updateGrid();
 void copyGRID(Cell GRID[GRID_WIDTH][GRID_HEIGHT], Cell BUFFER[GRID_WIDTH][GRID_HEIGHT]);
 void spawn_sand(int mouseX, int mouseY);
+void spawn_water(int mouseX, int mouseY);
 void setPixel(Cell *pixel, CellType type, bool alive);
 bool isEmpty(int x, int y);
+void moveTo(int fromX, int fromY, int toX, int toY);
 
 int main()
 {
-
+	srand((unsigned int)time(NULL));
 	InitWindow(GRID_WIDTH, GRID_HEIGHT, "Falling Sand Simulation");
 	Initialize_Grid(GRID);
-	SetTargetFPS(60);
+	SetTargetFPS(1000);
 	
 	
 
@@ -52,6 +55,10 @@ int main()
 		if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
 		{
 			spawn_sand(GetMouseX(), GetMouseY());
+		}
+		if (IsMouseButtonDown(MOUSE_RIGHT_BUTTON))
+		{
+			spawn_water(GetMouseX(), GetMouseY());
 		}
 		ClearBackground(EMPTY_COLOR);
 		updateGrid();
@@ -71,7 +78,9 @@ void Initialize_Grid(Cell GRID[GRID_WIDTH][GRID_HEIGHT])
 	{
 		for (int y = 0; y < GRID_HEIGHT; y++)
 		{
-			setPixel(&GRID[x][y], EMPTY, false);
+			GRID[x][y].cell = EMPTY;
+			GRID[x][y].color = EMPTY_COLOR;
+			GRID[x][y].alive = false;
 		}
 	}
 }
@@ -110,9 +119,10 @@ void renderGrid() {
 			}
 			*/
 			
-			if (GRID[x][y].alive)
+			if (GRID[x][y].changed || GRID[x][y].alive)
 			{
 				DrawPixel(x, y, GRID[x][y].color);
+				
 				
 			}
 
@@ -124,69 +134,186 @@ void renderGrid() {
 	
 }
 
+
+
 void updateGrid() {
 
-	srand(time(NULL));
+	for (int y = 0; y < GRID_HEIGHT; y++)
+	{
+		for (int x = 0; x < GRID_WIDTH; x++)
+		{
+			GRID[x][y].changed = false;
+		}
+	}
+
+
 	// Iterate over each cell in the grid
 	for (int y = GRID_HEIGHT - 1; y >= 0; y--) 
 	{
 		for (int x = 0; x < GRID_WIDTH; x++) 
 		{
 			
-				bool down = isEmpty(x,       y + 1);
-				bool dleft = isEmpty(x - 1,  y + 1);
-				bool dright = isEmpty(x + 1, y + 1);
-				if (GRID[x][y].cell == SAND && y < GRID_HEIGHT - 1)
+			if (GRID[x][y].changed)
+			{
+				continue;
+			}
+			
+			if (GRID[x][y].cell == EMPTY)
+			{
+				continue;
+			}
+
+
+
+
+			bool down = isEmpty(x, y + 1);
+			bool left = isEmpty(x - 1, y);
+			bool right = isEmpty(x + 1, y);
+			bool dleft = isEmpty(x - 1, y + 1);
+			bool dright = isEmpty(x + 1, y + 1);
+
+			if (down)
+			{
+				moveTo(x, y, x, y + 1);
+				setPixel(&GRID[x][y], EMPTY, false);
+			}
+			if (GRID[x][y].cell == SAND && y < GRID_HEIGHT - 1)
+			{
+				
+				
+			
+
+				bool checkLeft = rand() % 2 == 0;
+				if (down)
 				{
+					setPixel(&GRID[x][y + 1], SAND, true);
 
-					if (dleft && dright)
+				}
+				else if (checkLeft)
+				{
+					if (dleft)
 					{
-						int random = rand() % 100 + 1;
-
-						if (random > 50)
-						{
-							dleft = false;
-							dright = true;
-						}
-						else
-						{
-							dleft = true;
-							dright = false;
-						}
-					}
-
-
-					if (down)
-					{
-							setPixel(&GRID[x][y + 1], SAND, true);
-					}
-					else if (dleft)
-					{
-							setPixel(&GRID[x - 1][y], SAND, true);
+						setPixel(&GRID[x - 1][y], SAND, true);
+						
 					}
 					else if (dright)
 					{
-							setPixel(&GRID[x + 1][y], SAND, true);
+						setPixel(&GRID[x + 1][y], SAND, true);
+						
 					}
-					
-					if (down || dleft || dright)
+				}
+				else
+				{
+					if (dright)
 					{
+						
+						setPixel(&GRID[x + 1][y], SAND, true);
+
+					}
+					else if (dleft)
+					{
+						
+						setPixel(&GRID[x - 1][y], SAND, true);
+					}
+				}
+
+				if (down || dleft || dright)
+				{
+					setPixel(&GRID[x][y], EMPTY, false);
+				}
+				
+			}
+			else if (GRID[x][y].cell == WATER && y < GRID_HEIGHT - 1 && GRID[x][y+1].cell == WATER)
+			{
+				
+
+				// Generate a random integer between 0 and RAND_MAX
+				int randomNumber = rand();
+
+				// Calculate a threshold based on the range of possible values
+				int threshold = RAND_MAX / 2;
+
+				// Determine the boolean value based on the comparison with the threshold
+				bool checkLeft = randomNumber < threshold;
+
+				if (checkLeft)
+				{
+					if (right)
+					{
+						moveTo(x, y, x + 1, y);
+						setPixel(&GRID[x][y], EMPTY, false);
+					}
+					else if (left)
+					{
+						moveTo(x, y, x - 1, y);
 						setPixel(&GRID[x][y], EMPTY, false);
 					}
 				}
+			}
+			
+
+
+
+				
 		}
 	}
 }
 
 void spawn_sand(int mouseX, int mouseY)
 {
-	
-	if (mouseX >= 0 && mouseX < GRID_WIDTH && mouseY >= 0 && mouseY < GRID_HEIGHT)
-	{
-		setPixel(&GRID[mouseX][mouseY], SAND, true);
+	// Define the range for random sand particle spawning
+	int minSpawn = 5;
+	int maxSpawn = 20;
 
+	// Generate a random number of sand particles to spawn
+	int numToSpawn = GetRandomValue(minSpawn, maxSpawn);
+
+	// Spawn the specified number of sand particles
+	for (int i = 0; i < numToSpawn; i++)
+	{
+		// Randomize the position within a certain radius around the mouse position
+		int randX = mouseX + GetRandomValue(-SPAWN_RADIUS, SPAWN_RADIUS);
+		int randY = mouseY + GetRandomValue(-SPAWN_RADIUS, SPAWN_RADIUS);
+
+		// Ensure the randomized position is within the grid bounds
+		if (randX >= 0 && randX < GRID_WIDTH && randY >= 0 && randY < GRID_HEIGHT)
+		{
+			// Set the cell at the randomized position to SAND
+			setPixel(&GRID[randX][randY], SAND, true);
+		}
 	}
 	
+	
+}
+void spawn_water(int mouseX, int mouseY)
+{
+	/*
+	// Define the range for random sand particle spawning
+	int minSpawn = 5;
+	int maxSpawn = 20;
+
+	// Generate a random number of sand particles to spawn
+	int numToSpawn = GetRandomValue(minSpawn, maxSpawn);
+
+	// Spawn the specified number of sand particles
+	for (int i = 0; i < numToSpawn; i++)
+	{
+		// Randomize the position within a certain radius around the mouse position
+		int randX = mouseX + GetRandomValue(-SPAWN_RADIUS, SPAWN_RADIUS);
+		int randY = mouseY + GetRandomValue(-SPAWN_RADIUS, SPAWN_RADIUS);
+
+		// Ensure the randomized position is within the grid bounds
+		if (randX >= 0 && randX < GRID_WIDTH && randY >= 0 && randY < GRID_HEIGHT)
+		{
+			// Set the cell at the randomized position to SAND
+			setPixel(&GRID[randX][randY], WATER, true);
+		}
+	}
+*/
+
+	setPixel(&GRID[mouseX][mouseY], WATER, true);
+
+
 }
 
 void setPixel(Cell *pixel, CellType type, bool alive)
@@ -196,6 +323,7 @@ void setPixel(Cell *pixel, CellType type, bool alive)
 		pixel->cell = SAND;
 		pixel->color = SAND_COLOR;
 		pixel->alive = alive;
+		pixel->changed = true;
 
 	}
 	else if (type == WATER)
@@ -203,12 +331,15 @@ void setPixel(Cell *pixel, CellType type, bool alive)
 		pixel->cell = WATER;
 		pixel->color = WATER_COLOR;
 		pixel->alive = alive;
+		pixel->changed = true;
+		
 	}
 	else
 	{
 		pixel->cell = EMPTY;
 		pixel->color = EMPTY_COLOR;
 		pixel->alive = alive;
+		pixel->changed = true;
 		
 	}
 
@@ -226,4 +357,11 @@ bool isEmpty(int x, int y)
 	}
 
 	return (GRID[x][y].cell == EMPTY);
+}
+
+void moveTo(int fromX, int fromY, int toX, int toY)
+{
+	GRID[toX][toY] = GRID[fromX][fromY];
+
+
 }
