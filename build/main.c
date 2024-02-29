@@ -7,6 +7,7 @@
 #define GRID_HEIGHT 800
 #define EMPTY_COLOR BLACK
 #define WATER_COLOR BLUE
+#define STONE_COLOR GRAY
 #define SAND_COLOR GOLD
 #define SPAWN_RADIUS 15
 
@@ -14,6 +15,7 @@ typedef enum {
 	EMPTY,
 	SAND,
 	WATER,
+	STONE,
 } CellType;
 
 typedef struct {
@@ -35,6 +37,7 @@ void updateGrid();
 void copyGRID(Cell GRID[GRID_WIDTH][GRID_HEIGHT], Cell BUFFER[GRID_WIDTH][GRID_HEIGHT]);
 void spawn_sand(int mouseX, int mouseY);
 void spawn_water(int mouseX, int mouseY);
+void spawn_stone(int mouseX, int mouseY);
 void setPixel(Cell *pixel, CellType type, bool alive);
 bool isEmpty(int x, int y);
 void moveTo(int fromX, int fromY, int toX, int toY);
@@ -59,6 +62,10 @@ int main()
 		if (IsMouseButtonDown(MOUSE_RIGHT_BUTTON))
 		{
 			spawn_water(GetMouseX(), GetMouseY());
+		}
+		if (IsMouseButtonDown(MOUSE_BUTTON_MIDDLE))
+		{
+			spawn_stone(GetMouseX(), GetMouseY());
 		}
 		ClearBackground(EMPTY_COLOR);
 		updateGrid();
@@ -158,7 +165,7 @@ void updateGrid() {
 				continue;
 			}
 			
-			if (GRID[x][y].cell == EMPTY)
+			if (GRID[x][y].cell == EMPTY || GRID[x][y].cell == STONE)
 			{
 				continue;
 			}
@@ -184,21 +191,17 @@ void updateGrid() {
 			
 
 				bool checkLeft = rand() % 2 == 0;
-				if (down)
-				{
-					setPixel(&GRID[x][y + 1], SAND, true);
-
-				}
-				else if (checkLeft)
+			
+				if (checkLeft)
 				{
 					if (dleft)
 					{
-						setPixel(&GRID[x - 1][y], SAND, true);
+						setPixel(&GRID[x - 1][y + 1], SAND, true);
 						
 					}
 					else if (dright)
 					{
-						setPixel(&GRID[x + 1][y], SAND, true);
+						setPixel(&GRID[x + 1][y + 1], SAND, true);
 						
 					}
 				}
@@ -207,13 +210,13 @@ void updateGrid() {
 					if (dright)
 					{
 						
-						setPixel(&GRID[x + 1][y], SAND, true);
+						setPixel(&GRID[x + 1][y + 1], SAND, true);
 
 					}
 					else if (dleft)
 					{
 						
-						setPixel(&GRID[x - 1][y], SAND, true);
+						setPixel(&GRID[x - 1][y + 1], SAND, true);
 					}
 				}
 
@@ -276,7 +279,7 @@ void spawn_sand(int mouseX, int mouseY)
 		int randY = mouseY + GetRandomValue(-SPAWN_RADIUS, SPAWN_RADIUS);
 
 		// Ensure the randomized position is within the grid bounds
-		if (randX >= 0 && randX < GRID_WIDTH && randY >= 0 && randY < GRID_HEIGHT)
+		if (randX >= 0 && randX < GRID_WIDTH && randY >= 0 && randY < GRID_HEIGHT && GRID[randX][randY].cell == EMPTY)
 		{
 			// Set the cell at the randomized position to SAND
 			setPixel(&GRID[randX][randY], SAND, true);
@@ -287,7 +290,7 @@ void spawn_sand(int mouseX, int mouseY)
 }
 void spawn_water(int mouseX, int mouseY)
 {
-	/*
+	
 	// Define the range for random sand particle spawning
 	int minSpawn = 5;
 	int maxSpawn = 20;
@@ -303,18 +306,28 @@ void spawn_water(int mouseX, int mouseY)
 		int randY = mouseY + GetRandomValue(-SPAWN_RADIUS, SPAWN_RADIUS);
 
 		// Ensure the randomized position is within the grid bounds
-		if (randX >= 0 && randX < GRID_WIDTH && randY >= 0 && randY < GRID_HEIGHT)
+		if (randX >= 0 && randX < GRID_WIDTH && randY >= 0 && randY < GRID_HEIGHT && GRID[randX][randY].cell == EMPTY)
 		{
 			// Set the cell at the randomized position to SAND
 			setPixel(&GRID[randX][randY], WATER, true);
 		}
 	}
-*/
-
-	setPixel(&GRID[mouseX][mouseY], WATER, true);
-
 
 }
+
+void spawn_stone(int mouseX, int mouseY)
+{
+	for (int x = mouseX - SPAWN_RADIUS; x <= mouseX + SPAWN_RADIUS; x++) {
+		for (int y = mouseY - SPAWN_RADIUS; y <= mouseY + SPAWN_RADIUS; y++) {
+			if (x >= 0 && x < GRID_WIDTH && y >= 0 && y < GRID_HEIGHT) {
+				setPixel(&GRID[x][y], STONE, true);
+			}
+		}
+	}
+	
+
+}
+
 
 void setPixel(Cell *pixel, CellType type, bool alive)
 {
@@ -333,6 +346,13 @@ void setPixel(Cell *pixel, CellType type, bool alive)
 		pixel->alive = alive;
 		pixel->changed = true;
 		
+	}
+	else if (type == STONE)
+	{
+		pixel->cell = STONE;
+		pixel->color = STONE_COLOR;
+		pixel->alive = true;
+		pixel->changed = true;
 	}
 	else
 	{
