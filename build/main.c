@@ -113,6 +113,10 @@ int main()
 	UnloadSound(stoneSound);
 	UnloadSound(waterSound);
 	UnloadSound(sandSound);
+	for (int i = 0; i < 6; i++) {
+		UnloadMusicStream(music[i]);
+	}
+
 
 	CloseAudioDevice();
 	CloseWindow();
