@@ -30,6 +30,15 @@ typedef struct {
 
 Cell GRID[GRID_WIDTH][GRID_HEIGHT] = { 0 };
 Cell BUFFER[GRID_WIDTH][GRID_HEIGHT] = { 0 };
+int pixeltype = 0;
+bool pixel_change = false;
+Sound stoneSound;
+Sound sandSound;
+Sound waterSound;
+
+
+Music music[6];
+int currentSong = -1;
 
 void Initialize_Grid(Cell GRID[GRID_WIDTH][GRID_HEIGHT]);
 void renderGrid();
@@ -41,40 +50,72 @@ void spawn_stone(int mouseX, int mouseY);
 void setPixel(Cell *pixel, CellType type, bool alive);
 bool isEmpty(int x, int y);
 void moveTo(int fromX, int fromY, int toX, int toY);
+void switch_pixel();
+void pixel_type_text();
+void play_snd();
+void handle_input();
+void play_random_song();
+void update_song();
+
 
 int main()
 {
 	srand((unsigned int)time(NULL));
+	InitAudioDevice();
 	InitWindow(GRID_WIDTH, GRID_HEIGHT, "Falling Sand Simulation");
 	Initialize_Grid(GRID);
 	SetTargetFPS(1000);
 	
+	stoneSound = LoadSound("resources/stone.wav");
+	sandSound = LoadSound("resources/sand.wav");
+	waterSound = LoadSound("resources/water.wav");
 	
-
+	music[0] = LoadMusicStream("resources/Enhance.wav");
+	music[1] = LoadMusicStream("resources/8-Bit.wav");
+	music[2] = LoadMusicStream("resources/Megaman.wav");
+	music[3] = LoadMusicStream("resources/Zelda.wav");
+	music[4] = LoadMusicStream("resources/Rush.wav");
+	music[5] = LoadMusicStream("resources/Lurk.wav");
+	
+	float volume = GetMasterVolume();
+	
+	play_random_song();
+	
+	// Print the volume level to the console
+	printf("Current master volume level: %.2f\n", volume);
 	while (!WindowShouldClose())
 	{
 		BeginDrawing();
 		
-		if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
+		switch_pixel();
+		
+		play_snd();
+		handle_input();
+		if (IsMouseButtonPressed(MOUSE_MIDDLE_BUTTON))
 		{
-			spawn_sand(GetMouseX(), GetMouseY());
+			play_random_song();
 		}
-		if (IsMouseButtonDown(MOUSE_RIGHT_BUTTON))
-		{
-			spawn_water(GetMouseX(), GetMouseY());
-		}
-		if (IsMouseButtonDown(MOUSE_BUTTON_MIDDLE))
-		{
-			spawn_stone(GetMouseX(), GetMouseY());
-		}
+
+
+		
+		UpdateMusicStream(music[currentSong]);
+		update_song();
 		ClearBackground(EMPTY_COLOR);
 		updateGrid();
 		renderGrid(GRID, BUFFER);
+		pixel_type_text();
 		DrawFPS(10, 10);
 		EndDrawing();
 
 		
 	}
+
+	UnloadSound(stoneSound);
+	UnloadSound(waterSound);
+	UnloadSound(sandSound);
+
+	CloseAudioDevice();
+	CloseWindow();
 	return 0;
 }
 
@@ -126,7 +167,7 @@ void renderGrid() {
 			}
 			*/
 			
-			if (GRID[x][y].changed || GRID[x][y].alive)
+			if (GRID[x][y].alive)
 			{
 				DrawPixel(x, y, GRID[x][y].color);
 				
@@ -145,13 +186,7 @@ void renderGrid() {
 
 void updateGrid() {
 
-	for (int y = 0; y < GRID_HEIGHT; y++)
-	{
-		for (int x = 0; x < GRID_WIDTH; x++)
-		{
-			GRID[x][y].changed = false;
-		}
-	}
+	
 
 
 	// Iterate over each cell in the grid
@@ -160,10 +195,7 @@ void updateGrid() {
 		for (int x = 0; x < GRID_WIDTH; x++) 
 		{
 			
-			if (GRID[x][y].changed)
-			{
-				continue;
-			}
+			
 			
 			if (GRID[x][y].cell == EMPTY || GRID[x][y].cell == STONE)
 			{
@@ -184,6 +216,7 @@ void updateGrid() {
 				moveTo(x, y, x, y + 1);
 				setPixel(&GRID[x][y], EMPTY, false);
 			}
+
 			if (GRID[x][y].cell == SAND && y < GRID_HEIGHT - 1)
 			{
 				
@@ -382,6 +415,124 @@ bool isEmpty(int x, int y)
 void moveTo(int fromX, int fromY, int toX, int toY)
 {
 	GRID[toX][toY] = GRID[fromX][fromY];
+}
 
+void switch_pixel()
+{
+	//0 - sand
+	//1 - water
+	//2 - stone
+	int scroll = GetMouseWheelMove();
 
+	if (scroll > 0)
+	{
+
+		pixeltype++;
+		if (pixeltype == 3)
+			{
+				pixeltype = 0;
+			}
+		pixel_change = true;
+	}
+	else if (scroll < 0)
+	{
+		pixeltype--;
+		if (pixeltype < 0)
+		{
+			pixeltype = 2;
+			
+		}
+		
+		pixel_change = true;
+	}
+
+	
+}
+
+void pixel_type_text()
+{
+	if (pixeltype == 0)
+	{
+		DrawText("SAND", 10, 50, 20, SAND_COLOR);
+	}
+	else if (pixeltype == 1)
+	{
+		DrawText("WATER", 10, 50, 20, BLUE);
+	}
+	else if (pixeltype == 2)
+	{
+		DrawText("STONE", 10, 50, 20, STONE_COLOR);
+	}
+}
+
+void play_snd()
+{
+	if (pixeltype == 0 && pixel_change == true)
+	{
+		SetSoundVolume(sandSound, 5);
+		PlaySound(sandSound);
+		pixel_change = false;
+	}
+	else if (pixeltype == 1 && pixel_change == true)
+	{
+		PlaySound(waterSound);
+		pixel_change = false;
+	}
+	else if (pixeltype == 2 && pixel_change == true)
+	{
+		PlaySound(stoneSound);
+		pixel_change = false;
+	}
+}
+
+void handle_input()
+{
+	if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
+	{
+		if (pixeltype == 0)
+		{
+			spawn_sand(GetMouseX(), GetMouseY());
+		}
+		else if (pixeltype == 1)
+		{
+			spawn_water(GetMouseX(), GetMouseY());
+		}
+		else if (pixeltype == 2)
+		{
+			spawn_stone(GetMouseX(), GetMouseY());
+		}
+		
+	}
+}
+
+void play_random_song()
+{
+	// Increment the current song index
+	currentSong++;
+
+	// Wrap around if the index exceeds the number of songs
+	if (currentSong >= 6)
+	{
+		currentSong = 0; // Assuming you have 6 songs
+	}
+
+	// Stop the currently playing song
+	StopMusicStream(music[currentSong]);
+
+	// Set the volume for the new song
+	SetMusicVolume(music[currentSong], 0.1f);
+
+	// Play the next song
+	PlayMusicStream(music[currentSong]);
+	
+}
+
+void update_song()
+{
+	
+	if (currentSong != -1 && !IsMusicStreamPlaying(music[currentSong]))
+	{
+		play_random_song();
+
+	}
 }
