@@ -1,5 +1,2 @@
-﻿  functions.c
-C:\Users\Kevin\Documents\MyGame\build\functions.c(279,15): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-  main.c
-  Generating Code...
+﻿  main.c
   MyGame.vcxproj -> C:\Users\Kevin\Documents\MyGame\bin\Debug\MyGame.exe
