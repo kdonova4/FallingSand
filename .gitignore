@@ -1,4 +1,4 @@
 raylib-master
 .vs
 .lua
-premake.exe
+MyGame/premake.exe
