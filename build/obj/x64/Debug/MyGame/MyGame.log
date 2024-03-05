@@ -1,5 +1,5 @@
-﻿  main.c
-C:\Users\Kevin\Documents\MyGame\build\main.c(63,22): warning C4013: 'time' undefined; assuming extern returning int
-C:\Users\Kevin\Documents\MyGame\build\main.c(85,2): warning C4013: 'printf' undefined; assuming extern returning int
-C:\Users\Kevin\Documents\MyGame\build\main.c(429,15): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+﻿  functions.c
+C:\Users\Kevin\Documents\MyGame\build\functions.c(279,15): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+  main.c
+  Generating Code...
   MyGame.vcxproj -> C:\Users\Kevin\Documents\MyGame\bin\Debug\MyGame.exe
